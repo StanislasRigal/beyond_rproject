@@ -1,15 +1,8 @@
-#setwd("/home/rigal/Téléchargements/5-Workshop1")
-
-
-analysis_grid <- read.csv("analysis_beyond_ws1.csv")
+analysis_grid <- read.csv("raw_data/analysis_beyond_ws1.csv")
 analysis_grid[analysis_grid == ""] <- NA
 analysis_grid$spatial <- factor(analysis_grid$spatial, levels = c("city","subnational","national","europe","world"))
 #analysis_grid <- analysis_grid[c(11:83),]
 
-
-library(ggplot2)
-library(reshape2)
-library(viridis)
 
 ggplot(analysis_grid) +
   geom_bar(aes(x=spatial)) +
@@ -40,7 +33,7 @@ ggplot(analysis_grid_long[which(analysis_grid_long$variable != "n_scenario"),], 
   scale_fill_manual(values=c("darkgreen", "lightgreen","black")) + facet_wrap(~variable) + theme_minimal() +
   theme(legend.position="none")
 
-ggsave("number_scenario.png",
+ggsave("output/number_scenario.png",
        width = 6,
        height = 4,
        dpi = 300)
@@ -60,7 +53,7 @@ ggplot(analysis_grid) +
   xlab("") + ylab("Number of articles") + 
   theme_bw() + theme(legend.position = "none")
 
-ggsave("environment.png",
+ggsave("output/environment.png",
        width = 6,
        height = 4,
        dpi = 300)
@@ -72,7 +65,7 @@ ggplot(analysis_grid) +
   scale_x_continuous(breaks = c(2010:2024)) +
   theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust=1))
 
-ggsave("environment2.png",
+ggsave("output/environment2.png",
        width = 6,
        height = 6,
        dpi = 300)
@@ -91,7 +84,7 @@ ggplot(analysis_grid) +
   xlab("") + ylab("Number of articles") + 
   theme_bw() + theme(legend.position = "none")
 
-ggsave("biodiversity.png",
+ggsave("output/biodiversity.png",
        width = 6,
        height = 4,
        dpi = 300)
@@ -104,7 +97,7 @@ ggplot(analysis_grid) +
   scale_y_continuous(breaks = c(0:13)) +
   theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust=1))
 
-ggsave("biodiversity2.png",
+ggsave("output/biodiversity2.png",
        width = 6,
        height = 6,
        dpi = 300)
@@ -125,7 +118,7 @@ ggplot(analysis_grid_socio[which(!is.na(analysis_grid_socio$value_new)),], aes(x
   theme(legend.position="none",
         axis.text.x = element_text(angle = 45, hjust = 1))
 
-ggsave("socioeco.png",
+ggsave("output/socioeco.png",
        width = 6,
        height = 4,
        dpi = 300)
