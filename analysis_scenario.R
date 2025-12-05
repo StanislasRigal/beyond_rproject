@@ -38,29 +38,32 @@ ggsave("output/number_scenario.png",
        height = 4,
        dpi = 300)
 
-analysis_grid$environmental <- "none"
-analysis_grid$environmental[which((analysis_grid$biodiversity_explicit == 1 | analysis_grid$biodiversity_implicit == 1) &
-                                    (analysis_grid$climate_scenario == 1 | analysis_grid$climate_output == 1))] <- "biodiversity and climate"
-analysis_grid$environmental[which((analysis_grid$biodiversity_explicit == 1 | analysis_grid$biodiversity_implicit == 1) &
-                                    (analysis_grid$climate_scenario != 1 & analysis_grid$climate_output != 1))] <- "biodiversity"
-analysis_grid$environmental[which((analysis_grid$biodiversity_explicit != 1 & analysis_grid$biodiversity_implicit != 1) &
-                                    (analysis_grid$climate_scenario == 1 | analysis_grid$climate_output == 1))] <- "climate"
+analysis_grid <- analysis_grid[which(is.na(analysis_grid$remark)),]
+analysis_grid[is.na(analysis_grid)] <- 0
+
+analysis_grid$environmental <- "No environmental aspect"
+analysis_grid$environmental[which((analysis_grid$crop == 1 | analysis_grid$livestock == 1 | analysis_grid$wood == 1 | analysis_grid$housing == 1 | analysis_grid$biodiversity_explicit == 1 | analysis_grid$biodiversity_implicit == 1) &
+                                    (analysis_grid$climate_scenario == 1 | analysis_grid$climate_output == 1))] <- "Biodiversity and climate"
+analysis_grid$environmental[which((analysis_grid$crop == 1 | analysis_grid$livestock == 1 | analysis_grid$wood == 1 | analysis_grid$housing == 1 | analysis_grid$biodiversity_explicit == 1 | analysis_grid$biodiversity_implicit == 1) &
+                                    (analysis_grid$climate_scenario != 1 & analysis_grid$climate_output != 1))] <- "Biodiversity only"
+analysis_grid$environmental[which((analysis_grid$crop != 1 & analysis_grid$livestock != 1 & analysis_grid$wood != 1 & analysis_grid$housing != 1 & analysis_grid$biodiversity_explicit != 1 & analysis_grid$biodiversity_implicit != 1) &
+                                    (analysis_grid$climate_scenario == 1 | analysis_grid$climate_output == 1))] <- "Climate only"
 
 ggplot(analysis_grid) +
   geom_bar(aes(x=environmental, fill=environmental)) +
   coord_flip() +
-  scale_fill_manual(values=c("green", "blue","red","black"))+
+  scale_fill_manual(values=c("Biodiversity only"="#C3E57E", "Biodiversity and climate"="#7EC3E5","Climate only"="#8F7EE5","No environmental aspect"="#999999"))+
   xlab("") + ylab("Number of articles") + 
   theme_bw() + theme(legend.position = "none")
 
 ggsave("output/environment.png",
-       width = 6,
-       height = 4,
+       width = 5,
+       height = 5,
        dpi = 300)
 
 ggplot(analysis_grid) +
   geom_histogram(aes(x=year, fill=environmental)) +
-  scale_fill_manual(values=c("green", "blue","red","black"))+
+  scale_fill_manual(values=c("Biodiversity only"="#C3E57E", "Biodiversity and climate"="#7EC3E5","Climate only"="#8F7EE5","No environmental aspect"="#999999"))+
   xlab("") + ylab("Number of articles") + facet_wrap(~environmental) +
   scale_x_continuous(breaks = c(2010:2024)) +
   theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust=1))
@@ -72,32 +75,63 @@ ggsave("output/environment2.png",
 
 
 
-analysis_grid$biodiversity <- "none"
-analysis_grid$biodiversity[which(analysis_grid$biodiversity_explicit == 1)] <- "explicit"
-analysis_grid$biodiversity[which(analysis_grid$biodiversity_implicit == 1)] <- "implicit"
-analysis_grid$biodiversity[which(analysis_grid$crop == 1 | analysis_grid$livestock == 1 | analysis_grid$wood == 1 | analysis_grid$housing == 1)] <- "available information"
+analysis_grid$biodiversity <- "No biodiversity"
+analysis_grid$biodiversity[which(analysis_grid$crop == 1 | analysis_grid$livestock == 1 | analysis_grid$wood == 1 | analysis_grid$housing == 1)] <- "Direct drivers"
+analysis_grid$biodiversity[which(analysis_grid$biodiversity_implicit == 1)] <- "Ecological proxy"
+analysis_grid$biodiversity[which(analysis_grid$biodiversity_explicit == 1)] <- "Explicit biodiversity"
 
 ggplot(analysis_grid) +
   geom_bar(aes(x=biodiversity, fill=biodiversity)) +
   coord_flip() +
-  scale_fill_manual(values=c("darkgreen", "green","lightgreen","black"))+
+  scale_fill_manual(values=c("Explicit biodiversity" = "#6B990F", "Ecological proxy" = "#A3CC51","Direct drivers" = "#E5FFB2" ,"No biodiversity" = "#999999"))+
   xlab("") + ylab("Number of articles") + 
   theme_bw() + theme(legend.position = "none")
 
 ggsave("output/biodiversity.png",
-       width = 6,
-       height = 4,
+       width = 5,
+       height = 5,
        dpi = 300)
 
 ggplot(analysis_grid) +
   geom_histogram(aes(x=year, fill=biodiversity)) +
-  scale_fill_manual(values=c("green", "blue","red","black"))+
+  scale_fill_manual(values=c("Explicit biodiversity" = "#6B990F", "Ecological proxy" = "#A3CC51","Direct drivers" = "#E5FFB2" ,"No biodiversity" = "#999999"))+
   xlab("") + ylab("Number of articles") + facet_wrap(~biodiversity) +
   scale_x_continuous(breaks = c(2011:2024)) +
   scale_y_continuous(breaks = c(0:13)) +
   theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust=1))
 
 ggsave("output/biodiversity2.png",
+       width = 6,
+       height = 6,
+       dpi = 300)
+
+analysis_grid$biodiversity2 <- ifelse(analysis_grid$biodiversity == "No biodiversity", "No biodiversity", "Biodiversity proxy")
+
+ggplot(analysis_grid) +
+  geom_histogram(aes(x=year, fill=biodiversity2),binwidth=1,col="white") +
+  scale_fill_manual(values=c("Biodiversity proxy" = "#A3CC51" ,"No biodiversity" = "#999999"))+
+  xlab("") + ylab("Number of articles") +
+  scale_x_continuous(breaks = c(2011:2024)) +
+  scale_y_continuous(breaks = c(0:13)) +
+  theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust=1))
+
+ggplot(analysis_grid) +
+  geom_histogram(aes(x=year, fill=biodiversity),binwidth=1,col="white") +
+  scale_fill_manual(values=c("Explicit biodiversity" = "#6B990F", "Ecological proxy" = "#A3CC51","Direct drivers" = "#E5FFB2" ,"No biodiversity" = "#999999"))+
+  xlab("") + ylab("Number of articles") +
+  scale_x_continuous(breaks = c(2011:2024)) +
+  scale_y_continuous(breaks = c(0:13)) +
+  theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust=1))
+
+ggplot(analysis_grid) +
+  geom_bar(aes(x=year, fill=biodiversity2),position="fill") +
+  scale_fill_manual(values=c("Biodiversity proxy" = "#A3CC51" ,"No biodiversity" = "#999999"))+
+  xlab("") + ylab("Number of articles") +
+  scale_x_continuous(breaks = c(2011:2024)) +
+  scale_y_continuous(breaks = c(0:13)) +
+  theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust=1))
+
+ggsave("output/biodiversity3.png",
        width = 6,
        height = 6,
        dpi = 300)
