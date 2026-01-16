@@ -156,3 +156,102 @@ ggsave("output/socioeco.png",
        width = 6,
        height = 4,
        dpi = 300)
+
+# driver biodiversity
+
+driver_grid <- read.csv("raw_data/biodiv_drivers.csv")
+driver_grid[driver_grid == ""] <- NA
+
+names(driver_grid) <- c("paperID","Biodiversity proxy name","Biodiversity indirect proxy","Biodiversity direct proxy","Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
+                        "Biofuel","Environmental regulation","Climate","Trade","Transport","Other")
+
+driver_grid_plot <- driver_grid[,c("paperID","Biodiversity indirect proxy","Biodiversity direct proxy","Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
+                                   "Biofuel","Environmental regulation","Trade","Transport")]
+
+driver_grid_plot[driver_grid_plot == 2] <- 1
+
+
+driver_grid_long <- pivot_longer(driver_grid_plot[,c("paperID","Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
+                                                     "Biofuel","Environmental regulation","Trade","Transport")], cols=c("Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
+                                                          "Biofuel","Environmental regulation","Trade","Transport"),
+                                 names_to = "drivers")
+
+names(driver_grid_long)[3] <- "values"
+
+
+driver_grid_long$drivers <- factor(driver_grid_long$drivers, levels = c("Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
+                                                                        "Biofuel","Environmental regulation","Trade","Transport"))
+
+
+driver_grid_longer <- pivot_stages_longer(na.omit(driver_grid_long), stages_from = c("paperID","drivers"), values_from = "values", additional_aes_from = "drivers")
+
+
+
+driver_grid_long2 <- pivot_longer(driver_grid_plot[,c("paperID","Biodiversity indirect proxy","Biodiversity direct proxy")], cols=c("Biodiversity indirect proxy","Biodiversity direct proxy"),
+                                 names_to = "drivers")
+
+names(driver_grid_long2)[c(2,3)] <- c("proxy","values")
+
+driver_grid_longer2 <- pivot_stages_longer(na.omit(driver_grid_long2), stages_from = c("proxy","paperID"), values_from = "values", additional_aes_from = "proxy")
+
+driver_grid_longer2$edge_id <- sort(rep((c(1:9)+max(driver_grid_longer$edge_id)),2))
+
+driver_grid_longer2$stage <- as.character(driver_grid_longer2$stage)
+driver_grid_longer$stage <- as.character(driver_grid_longer$stage)
+names(driver_grid_longer2)[1] <- "drivers"
+
+driver_grid_longer_all <- rbind(driver_grid_longer,driver_grid_longer2)
+driver_grid_longer_all$stage <- factor(driver_grid_longer_all$stage, levels = c("proxy","paperID","drivers"))
+
+ggplot(
+  data = driver_grid_longer_all,
+  mapping = aes(x = stage, y = values, group = node,
+                edge_id = edge_id, connector = connector, colour = stage, label = node)) +
+  geom_sankeyedge(aes(fill=drivers), col=NA, position = position_sankey(v_space = "auto", order = "as_is", align = "justify")) +
+  geom_sankeynode(col = NA, aes(fill=node),position = position_sankey(v_space = "auto", order = "as_is", align = "justify")) +
+  scale_fill_manual(values = c("A05"="#C0C0C0","A36" ="#C0C0C0","A13" ="#C0C0C0","A29" ="#C0C0C0","A58" ="#C0C0C0","A69" ="#C0C0C0","A24" ="#C0C0C0","A44" ="#C0C0C0","A40" ="#C0C0C0","A62" ="#C0C0C0","A82" ="#C0C0C0","A18" ="#C0C0C0","A11" ="#C0C0C0","A75" ="#C0C0C0","A47" ="#C0C0C0","A55" ="#C0C0C0",
+                               "Climate feedback"="#680000","GHG emissions"="#9b54f3","Population"="#bf8cfc","Agriculture area or production"="#f98517","Forest area or production"="#008c5c","Urban area"="#ac0000","Biofuel"="#33b983","Environmental regulation"="#0050ae","Trade"="#c85b00","Transport"="#002f64",
+                               "Indirect proxy"="#33b983","Direct proxy"="#008c5c")) +
+  #geom_text(aes(label = node, alpha=as.factor(stage)), size= 3, col="black", stat = "sankeynode", position = position_sankey(v_space = "auto", order = "as_is", align = "justify", nudge_x = 0.3)) +
+  #scale_alpha_manual(values = c("paperID"=0,"drivers"=1)) +
+  #geom_text(aes(label = node, alpha=as.factor(stage)), size= 3, col="black", stat = "sankeynode", position = position_sankey(v_space = "auto", order = "as_is", align = "justify")) +
+  #scale_alpha_manual(values = c("paperID"=1,"drivers"=0)) +
+  guides(fill   = guide_legend(ncol = 1), alpha  = guide_legend(ncol = 1), colour = guide_legend(ncol = 1)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+
+
+ggsave("output/sankey1.png",
+       width = 7,
+       height = 4,
+       dpi = 500)
+
+
+# paper values
+
+value_grid <- read.csv("raw_data/paper_hnr.csv")
+
+value_grid_hnr <- value_grid %>% group_by(Human.Nature.Relationship) %>% summarise(count=n())
+value_grid_svn <- value_grid %>% group_by(Specific.values.of.nature) %>% summarise(count=n())
+
+value_grid_plot <- data.frame(scale = c(rep("Human Nature Relationship",5), rep("Specific values of nature",4)),
+                              variable = c(value_grid_hnr$Human.Nature.Relationship, value_grid_svn$Specific.values.of.nature),
+                              value = c(value_grid_hnr$count,value_grid_svn$count))
+
+ggplot(value_grid_plot, aes(x=scale, y=value, fill = variable)) + 
+  geom_bar(stat = "identity") +  scale_fill_viridis_d() + 
+  theme_minimal() + theme(axis.title = element_blank())
+
+
+ggsave("output/value_barplot.png",
+       width = 6,
+       height = 4,
+       dpi = 300)
+
+
+
+
+
+
+

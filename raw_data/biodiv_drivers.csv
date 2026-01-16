@@ -1,0 +1,17 @@
+Papers,Biodiversity proxy name,Biodiversity indirect proxy,Biodiversity direct proxy,Climate feedback,Climate as output (CO2),Population,"Agriculture (Crop production, Livestock, Agricultural area)",Forest (Wood production + forest cover),Urban area/pop,Energy (biofuel + other),Protected area + rules,Climate 4.5 8.5 or 6.7,Trade,Transport,Other
+A05,,,,,1,,,,1,1,,,1,1,
+A36,environmental footprint,1,,,1,1,,2,,1,2,,,,
+A13,environmental protection,1,,,1,1,,,,,2,,1,,
+A58,,,,,1,1,1,,,,,1,,,
+A69,,,,,,1,,1,,,,1,,,
+A24,ecological damage,1,,,,2,,,,,,,,,Ecological damage
+A29,,,,,1,1,1,2,1,1,2,,1,1,A37 eliminated as mdpi and city focused
+A44,,,,,1,1,,,1,,,,,,
+A40,environmental burden index,1,,1,1,1,,,,,,,,,
+A62,ecological footprint,1,,,1,1,,,,1,,,,,Ecological Footprint
+A82,BII,,1,,1,1,1,1,1,,1,,1,1,
+A18,,,,,1,,,,,1,,,1,,
+A11,,,,,1,1,,,1,,,,2,1,
+A75,natural capital,1,,1,,,1,,1,,,,,1,
+A47,forest area,,1,,,,1,1,,,,,,,
+A55,tropical biomass stock,1,,1,1,,,1,,1,,,,,
