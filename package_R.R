@@ -1,5 +1,7 @@
 library(ggplot2)
 library(reshape2)
 library(viridis)
+library(plyr)
+library(dplyr)
 library(tidyr)
 library(ggsankeyfier)
