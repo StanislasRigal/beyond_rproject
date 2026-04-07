@@ -165,7 +165,9 @@ driver_grid[driver_grid == ""] <- NA
 names(driver_grid) <- c("paperID","Biodiversity proxy name","Biodiversity indirect proxy","Biodiversity direct proxy","Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
                         "Biofuel","Environmental regulation","Climate","Trade","Transport","Other")
 
-driver_grid_plot <- driver_grid[,c("paperID","Biodiversity indirect proxy","Biodiversity direct proxy","Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
+driver_grid$`No biodiversity` <- ifelse(is.na(driver_grid$`Biodiversity indirect proxy`) & is.na(driver_grid$`Biodiversity direct proxy`), 1, NA)
+
+driver_grid_plot <- driver_grid[,c("paperID","Biodiversity indirect proxy","Biodiversity direct proxy","No biodiversity","Climate feedback","GHG emissions","Population","Agriculture area or production","Forest area or production","Urban area",
                                    "Biofuel","Environmental regulation","Trade","Transport")]
 
 driver_grid_plot[driver_grid_plot == 2] <- 1
@@ -187,16 +189,20 @@ driver_grid_longer <- pivot_stages_longer(na.omit(driver_grid_long), stages_from
 
 
 
-driver_grid_long2 <- pivot_longer(driver_grid_plot[,c("paperID","Biodiversity indirect proxy","Biodiversity direct proxy")], cols=c("Biodiversity indirect proxy","Biodiversity direct proxy"),
+driver_grid_long2 <- pivot_longer(driver_grid_plot[,c("paperID","Biodiversity indirect proxy","Biodiversity direct proxy","No biodiversity")], cols=c("Biodiversity indirect proxy","Biodiversity direct proxy","No biodiversity"),
                                  names_to = "drivers")
 
 names(driver_grid_long2)[c(2,3)] <- c("proxy","values")
 
 driver_grid_longer2 <- pivot_stages_longer(na.omit(driver_grid_long2), stages_from = c("proxy","paperID"), values_from = "values", additional_aes_from = "proxy")
 
+driver_grid_longer2 <- rbind(driver_grid_longer2[which(driver_grid_longer2$proxy == "Biodiversity direct proxy"),],
+                             driver_grid_longer2[which(driver_grid_longer2$proxy == "Biodiversity indirect proxy"),],
+                             driver_grid_longer2[which(driver_grid_longer2$proxy == "No biodiversity"),])
+
 driver_grid_longer2$values <- 3
 
-driver_grid_longer2$edge_id <- sort(rep((c(1:9)+max(driver_grid_longer$edge_id)),2))
+driver_grid_longer2$edge_id <- sort(rep((c(1:16)+max(driver_grid_longer$edge_id)),2))
 
 driver_grid_longer2$stage <- as.character(driver_grid_longer2$stage)
 driver_grid_longer$stage <- as.character(driver_grid_longer$stage)
@@ -225,7 +231,7 @@ ggplot(
 
 
 ggsave("output/sankey_all.png",
-       width = 7,
+       width = 6,
        height = 4,
        dpi = 500)
 
@@ -382,7 +388,22 @@ write.csv(PGMC_narrative_data,"output/PGMC_narrative_data.csv", row.names = FALS
 
 #### is structured (graphical)
 
-gower_mat_dist <- cluster::daisy(PGMC_narrative_data)
+# remove testtest, green growth and color using qualitative clustering
+
+PGMC_narrative$title_group <- NA
+PGMC_narrative$title_group[which(PGMC_narrative$title %in% c("Post-Growth Green New Deal",
+                                                             "Ecosocialist degrowth and decolonisation by design",
+                                                             "(Eco)-Socialist Turn",
+                                                             "So it Goes","Highly-automated comfort socialism",
+                                                             "Socialist revolution in the US"))] <- "Smooth-ish ecosocialism"
+PGMC_narrative$title_group[which(PGMC_narrative$title %in% c("Gradual shift to Degrowth","Postgrowth Future","Equitable Eco-ludic Infrastructualism"))] <- "Not named"
+PGMC_narrative$title_group[which(PGMC_narrative$title %in% c("One World Sufficiency","Egalitarian local sufficiency; Libertarian Utopia","Earth Confederation","Solar Punk","Eco-localism"))] <- "Bottom-up anarchist/community"
+PGMC_narrative$title_group[which(PGMC_narrative$title %in% c("Decolonial delinking",	"China-dominated global ecological civilisation"))] <- "International tensions"
+PGMC_narrative$title_group[which(PGMC_narrative$title %in% c("Shared power for PG in a polycrisis world","Reformist post-growth eco-social democracy","Piercing from Below"))] <- "Uneasy or borderline post-growth"
+
+gower_mat_dist <- cluster::daisy(PGMC_narrative_data[which(!(PGMC_narrative$title %in% c("testtest", "Green growth"))),])
+gower_mat_dist <- cluster::daisy(PGMC_narrative_data[which(!(PGMC_narrative$title %in% c("testtest", "Green growth")) & PGMC_narrative$title_group=="Bottom-up anarchist/community"),])
+gower_mat_dist <- cluster::daisy(PGMC_narrative_data[which(!(PGMC_narrative$title %in% c("testtest", "Green growth")) & PGMC_narrative$title_group=="Smooth-ish ecosocialism"),])
 seriation::dissplot(gower_mat_dist)
 
 #### group number
@@ -396,6 +417,7 @@ NbClust::NbClust(diss=gower_mat_dist,distance=NULL,method="ward.D2",index="dunn"
 dendro_ac <- cluster::agnes(gower_mat_dist,method="ward")
 factoextra::fviz_dend(dendro_ac)
 classif_ac <- cutree(dendro_ac,k=4)
+classif_ac_3 <- cutree(dendro_ac,k=3)
 
 dendro_ac2 <- cluster::agnes(gower_mat_dist,method="average")
 factoextra::fviz_dend(dendro_ac2)
@@ -405,15 +427,22 @@ classif_ac2_3 <- cutree(dendro_ac2,k=3)
 dendro_dec <- cluster::diana(gower_mat_dist)
 factoextra::fviz_dend(dendro_dec)
 classif_dec <- cutree(dendro_dec,k=4)
+classif_dec_3 <- cutree(dendro_dec,k=3)
 
 fpc::cluster.stats(gower_mat_dist,clustering=classif_ac)$avg.silwidth # max best
 fpc::cluster.stats(gower_mat_dist,clustering=classif_ac2)$avg.silwidth
+fpc::cluster.stats(gower_mat_dist,clustering=classif_ac_3)$avg.silwidth
+fpc::cluster.stats(gower_mat_dist,clustering=classif_ac2_3)$avg.silwidth
 fpc::cluster.stats(gower_mat_dist,clustering=classif_dec)$avg.silwidth
 fpc::cluster.stats(gower_mat_dist,clustering=classif_ac)$dunn # max best
 fpc::cluster.stats(gower_mat_dist,clustering=classif_ac2)$dunn
+fpc::cluster.stats(gower_mat_dist,clustering=classif_ac_3)$dunn
+fpc::cluster.stats(gower_mat_dist,clustering=classif_ac2_3)$dunn
 fpc::cluster.stats(gower_mat_dist,clustering=classif_dec)$dunn
 clValid::connectivity(gower_mat_dist,clusters=classif_ac) # min best
 clValid::connectivity(gower_mat_dist,clusters=classif_ac2)
+clValid::connectivity(gower_mat_dist,clusters=classif_ac_3)
+clValid::connectivity(gower_mat_dist,clusters=classif_ac2_3)
 clValid::connectivity(gower_mat_dist,clusters=classif_dec)
 
 #### check classification
@@ -428,11 +457,19 @@ plot(sil)
 
 sil3 <- cluster::silhouette(classif_ac2_3,gower_mat_dist)
 plot(sil3)
-classif_ac2_3[10] <- 3
+#classif_ac2_3[10] <- 3
+classif_ac2_3[15] <- 3
+sil3 <- cluster::silhouette(classif_ac2_3,gower_mat_dist)
+plot(sil3)
+classif_ac2_3[5] <- 3
+classif_ac2_3[17] <- 3
 sil3 <- cluster::silhouette(classif_ac2_3,gower_mat_dist)
 plot(sil3)
 
-PGMC_narrative$class <- classif_ac2
+PGMC_narrative_data <- PGMC_narrative_data[which(!(PGMC_narrative$title %in% c("testtest", "Green growth"))),]
+PGMC_narrative <- PGMC_narrative[which(!(PGMC_narrative$title %in% c("testtest", "Green growth"))),]
+
+PGMC_narrative$class <- classif_ac2_3
 
 ### Mix analysis
 
@@ -664,7 +701,7 @@ RVAideMemoire::MVA.plot(AMix)
 RVAideMemoire::scat.cr(AMix,axis=1)
 
 gower_mat_dist2 <- cluster::daisy(PGMC_narrative_data2)
-PGMC_narrative_data2$cluster <- classif_ac2
+PGMC_narrative_data2$cluster <- classif_ac2_3
 
 dbRDA <- vegan::dbrda(gower_mat_dist2 ~ global_coop+internat_gov+scale_gov+democracy+provisioning_str+provisioning_coord+mat_provisioning_techdep+
                         mat_provisioning_automationlev+enduse_tech+tech_complexity+precautionary_principle+transition_type+transition_trigger+internat_prio+societal_prio+
@@ -679,3 +716,6 @@ RVAideMemoire::MVA.plot(dbRDA, fac=cutree(dendro_ac2,k=15), labels=PGMC_narrativ
 plot(dbRDA)
 plot(dbRDA, display='wa')
 plot(dbRDA, display='bp')
+ggvegan::autoplot(dbRDA)
+
+RVAideMemoire::MVA.plot(dbRDA, col=c("green","violet","orange","red","grey")[as.numeric(as.factor(PGMC_narrative$title_group))], labels=PGMC_narrative$title, points=FALSE)
